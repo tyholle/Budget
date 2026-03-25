@@ -52,7 +52,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .cat-cards{display:flex;flex-direction:column;gap:8px}
 .cat-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem}
 .cat-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.cat-name{font-size:14px;font-weight:500}
+.cat-name-lbl{font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px}
 .cat-amt{font-size:13px;color:var(--text2)}
 .cat-amt strong{color:var(--text)}
 .prog{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
@@ -64,7 +64,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .del-btn:hover{color:var(--red)}
 .sec-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin:1.25rem 0 .75rem}
 .bill-list{display:flex;flex-direction:column;gap:8px}
-.bill-row{display:flex;justify-content:space-between;align-items:center;padding:.875rem 1.25rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius)}
+.bill-row{display:flex;justify-content:space-between;align-items:center;padding:.875rem 1.25rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);cursor:default;user-select:none}
+.bill-row.touch-over{border-color:var(--blue);border-width:2px}
 .bill-name{font-size:14px;font-weight:500}
 .bill-note{font-size:12px;color:var(--text2);margin-top:2px}
 .bill-right{display:flex;align-items:center;gap:10px}
@@ -75,13 +76,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .badge-ok{background:var(--green-bg);color:var(--green)}
 .edit-btn{background:none;border:none;color:var(--text2);cursor:pointer;font-size:13px;font-family:inherit;padding:2px 6px}
 .remove-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:17px;padding:0;line-height:1}
+.drag-handle{color:var(--text3);cursor:grab;font-size:18px;padding:0 6px;line-height:1;user-select:none;touch-action:none;-webkit-user-select:none}
 .edit-form{display:flex;flex-direction:column;gap:8px;padding:.875rem 1.25rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius)}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .grid-day{display:grid;grid-template-columns:80px 1fr;gap:8px}
-.form-btns{display:flex;gap:8px}
+.form-btns{display:flex;gap:8px;align-items:center}
 .save-btn{padding:7px 16px;font-size:13px;font-weight:500;border:none;border-radius:var(--radius);background:var(--text);color:var(--bg);cursor:pointer;font-family:inherit}
 .cancel-btn{padding:7px 16px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);background:none;color:var(--text);cursor:pointer;font-family:inherit}
-.add-bill-btn{width:100%;margin-top:4px;padding:10px;font-size:13px;border:1px dashed var(--border2);border-radius:var(--radius);background:none;color:var(--text2);cursor:pointer;font-family:inherit}
+.add-dashed-btn{width:100%;margin-top:4px;padding:10px;font-size:13px;border:1px dashed var(--border2);border-radius:var(--radius);background:none;color:var(--text2);cursor:pointer;font-family:inherit}
 .total-row{margin-top:1rem;padding:.875rem 1.25rem;background:var(--bg2);border-radius:var(--radius);display:flex;justify-content:space-between;align-items:center}
 .total-label{font-size:13px;color:var(--text2)}
 .total-val{font-size:16px;font-weight:600}
@@ -94,8 +96,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .trip-form-title{font-size:14px;font-weight:500;margin-bottom:12px}
 textarea{resize:vertical;min-height:70px}
 .trip-submit{width:100%;padding:10px;font-size:14px;font-weight:500;border:none;border-radius:var(--radius);background:var(--text);color:var(--bg);cursor:pointer;font-family:inherit}
-.trip-cards{display:flex;flex-direction:column;gap:12px}
-.trip-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.trip-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:12px}
 .trip-card-hdr{padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:flex-start}
 .trip-dest{font-size:16px;font-weight:600}
 .trip-dates{font-size:12px;color:var(--text2);margin-top:3px}
@@ -107,6 +108,9 @@ textarea{resize:vertical;min-height:70px}
 .remove-trip-btn{background:none;border:1px solid var(--border);border-radius:var(--radius);padding:5px 12px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit}
 .empty{text-align:center;padding:2.5rem;color:var(--text2);font-size:14px}
 .trip-summary{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;font-size:13px}
+.color-dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0}
+.manage-link{font-size:12px;color:var(--text2);background:none;border:none;cursor:pointer;font-family:inherit;padding:0}
+.manage-link:hover{color:var(--text)}
 </style>
 </head>
 <body>
@@ -133,19 +137,28 @@ textarea{resize:vertical;min-height:70px}
     </div>
     <div class="metric-grid">
       <div class="metric"><div class="metric-label">Spent</div><div class="metric-val" id="m-spent" style="color:var(--red)">$0.00</div></div>
-      <div class="metric"><div class="metric-label">Budget</div><div class="metric-val">$420.00</div></div>
+      <div class="metric"><div class="metric-label">Budget</div><div class="metric-val" id="m-budget">$420.00</div></div>
       <div class="metric"><div class="metric-label">Left</div><div class="metric-val" id="m-left" style="color:var(--green)">$420.00</div></div>
     </div>
     <div class="add-form">
       <input type="text" id="tx-desc" placeholder="Description"/>
       <input type="number" id="tx-amt" placeholder="$0" min="0" step="0.01"/>
-      <select id="tx-cat">
-        <option>Groceries</option><option>Going Out</option><option>Uber/Travel</option>
-        <option>Miscellaneous</option><option>Entertainment</option>
-      </select>
+      <select id="tx-cat"></select>
       <button class="add-btn" onclick="addTx()">+ Add</button>
     </div>
     <div class="cat-cards" id="cat-cards"></div>
+    <div style="margin-top:1rem;text-align:right">
+      <button class="manage-link" onclick="switchTab('cats')">Manage categories →</button>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+
+  <div id="tab-cats" class="section">
+    <div class="sec-title">Weekly categories</div>
+    <div id="cat-manage-list"></div>
+    <div id="add-cat-area"></div>
+    <div class="total-row"><span class="total-label">Total weekly budget</span><span class="total-val" id="cats-total"></span></div>
   </div>
 
   <!-- BILLS -->
@@ -159,7 +172,7 @@ textarea{resize:vertical;min-height:70px}
 
   <!-- MONTH -->
 
-  <div id="tab-month" class="section" id="month-container">
+  <div id="tab-month" class="section">
     <div id="month-inner"></div>
   </div>
 
@@ -188,16 +201,14 @@ textarea{resize:vertical;min-height:70px}
 </div>
 
 <script>
-const CATS=[
-  {name:"Groceries",budget:100,color:"#1D9E75"},
-  {name:"Going Out",budget:150,color:"#378ADD"},
-  {name:"Uber/Travel",budget:40,color:"#7F77DD"},
-  {name:"Miscellaneous",budget:30,color:"#D4537E"},
-  {name:"Entertainment",budget:100,color:"#BA7517"},
+const DEFAULT_CATS=[
+  {id:"c1",name:"Groceries",budget:100,color:"#1D9E75"},
+  {id:"c2",name:"Going Out",budget:150,color:"#378ADD"},
+  {id:"c3",name:"Uber/Travel",budget:40,color:"#7F77DD"},
+  {id:"c4",name:"Miscellaneous",budget:30,color:"#D4537E"},
+  {id:"c5",name:"Entertainment",budget:100,color:"#BA7517"},
 ];
-const WEEK_BUDGET=420;
-const HAIRCUT_BASE=new Date(2026,2,20);
-const HAIRCUT_AMT=54.35;
+const CAT_COLORS=["#1D9E75","#378ADD","#7F77DD","#D4537E","#BA7517","#185FA5","#854F0B","#0F6E56"];
 const DEFAULT_BILLS=[
   {id:"b1",name:"Rent",amount:2500,day:31,note:"Last day of month"},
   {id:"b2",name:"Gym",amount:224.15,day:1,note:"1st of month"},
@@ -206,19 +217,31 @@ const DEFAULT_BILLS=[
   {id:"b5",name:"Amazon",amount:17.00,day:23,note:"Around 23rd"},
   {id:"b6",name:"Claude Sub",amount:21.78,day:27,note:"27th of month"},
 ];
+const HAIRCUT_BASE=new Date(2026,2,20);
+const HAIRCUT_AMT=54.35;
 
 function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
 function persist(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
 
 let txData=load("bgt_tx",{});
 let tripData=load("bgt_trips",[]);
+let cats=load("bgt_cats",DEFAULT_CATS);
+
+// Always ensure Rent is in bills
 let bills=load("bgt_bills",DEFAULT_BILLS);
+if(!bills.find(b=>b.name==="Rent")){
+  bills.unshift({id:"b1",name:"Rent",amount:2500,day:31,note:"Last day of month"});
+  persist("bgt_bills",bills);
+}
 
 const today=new Date();today.setHours(0,0,0,0);
 let currentWS=weekStart(today);
 let editingBillId=null;
 let addingBill=false;
+let editingCatId=null;
+let addingCat=false;
 
+function weekBudget(){return cats.reduce((s,c)=>s+c.budget,0);}
 function weekStart(d){const dt=new Date(d);dt.setHours(0,0,0,0);dt.setDate(dt.getDate()-dt.getDay());return dt;}
 function wKey(d){return d.toISOString().slice(0,10);}
 function fmt(n){return"$"+(Math.round(n*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -245,12 +268,63 @@ function getHaircutDates(){
 
 document.getElementById("today-lbl").textContent=today.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
 
+// ── Touch reorder ──
+let ts=null;
+function wireReorder(listType){
+  const rows=document.querySelectorAll(`[data-rt="${listType}"]`);
+  rows.forEach(row=>{
+    const handle=row.querySelector(".drag-handle");
+    if(!handle)return;
+    handle.addEventListener("touchstart",e=>{
+      e.preventDefault();
+      const touch=e.touches[0];
+      const rect=row.getBoundingClientRect();
+      const clone=row.cloneNode(true);
+      clone.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.82;z-index:9999;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,0.18);border-radius:10px;background:var(--bg)`;
+      document.body.appendChild(clone);
+      row.style.opacity="0.25";
+      ts={listType,itemId:row.dataset.rid,row,clone,oy:touch.clientY-rect.top,targetId:null};
+    },{passive:false});
+    handle.addEventListener("touchmove",e=>{
+      if(!ts)return;
+      e.preventDefault();
+      const touch=e.touches[0];
+      ts.clone.style.top=(touch.clientY-ts.oy)+"px";
+      ts.clone.style.display="none";
+      const under=document.elementFromPoint(touch.clientX,touch.clientY);
+      ts.clone.style.display="";
+      document.querySelectorAll(".touch-over").forEach(el=>el.classList.remove("touch-over"));
+      if(under){
+        const tr=under.closest(`[data-rt="${ts.listType}"]`);
+        if(tr&&tr!==ts.row){tr.classList.add("touch-over");ts.targetId=tr.dataset.rid;}
+      }
+    },{passive:false});
+    handle.addEventListener("touchend",()=>{
+      if(!ts)return;
+      ts.clone.remove();ts.row.style.opacity="";
+      document.querySelectorAll(".touch-over").forEach(el=>el.classList.remove("touch-over"));
+      const{listType,itemId,targetId}=ts;ts=null;
+      if(!targetId||targetId===itemId)return;
+      if(listType==="bill"){
+        const a=[...bills],f=a.findIndex(b=>b.id===itemId),t2=a.findIndex(b=>b.id===targetId);
+        if(f<0||t2<0)return;
+        a.splice(t2,0,a.splice(f,1)[0]);bills=a;persist("bgt_bills",bills);renderBills();
+      } else {
+        const a=[...cats],f=a.findIndex(c=>c.id===itemId),t2=a.findIndex(c=>c.id===targetId);
+        if(f<0||t2<0)return;
+        a.splice(t2,0,a.splice(f,1)[0]);cats=a;persist("bgt_cats",cats);renderCats();renderWeek();
+      }
+    });
+  });
+}
+
 // ── Tab switching ──
 function switchTab(t){
   document.querySelectorAll(".tab").forEach((el,i)=>el.classList.toggle("active",["week","bills","month","travel"][i]===t));
   document.querySelectorAll(".section").forEach(el=>el.classList.remove("active"));
   document.getElementById("tab-"+t).classList.add("active");
   if(t==="week")renderWeek();
+  if(t==="cats")renderCats();
   if(t==="bills")renderBills();
   if(t==="month")renderMonth();
   if(t==="travel")renderTravel();
@@ -268,13 +342,20 @@ function renderWeek(){
   document.getElementById("wk-sub").textContent=isNow?"Current week":"";
   const txs=txData[wKey(ws)]||[];
   const totalSpent=txs.reduce((s,t)=>s+t.amt,0);
-  const left=WEEK_BUDGET-totalSpent;
+  const wb=weekBudget();
+  const left=wb-totalSpent;
   document.getElementById("m-spent").textContent=fmt(totalSpent);
+  document.getElementById("m-budget").textContent=fmt(wb);
   const leftEl=document.getElementById("m-left");
   leftEl.textContent=fmt(Math.abs(left));
   leftEl.style.color=left>=0?"var(--green)":left>=-50?"var(--amber)":"var(--red)";
 
-  document.getElementById("cat-cards").innerHTML=CATS.map(c=>{
+  const sel=document.getElementById("tx-cat");
+  const prev=sel.value;
+  sel.innerHTML=cats.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("");
+  if(cats.find(c=>c.name===prev))sel.value=prev;
+
+  document.getElementById("cat-cards").innerHTML=cats.map(c=>{
     const catTxs=txs.filter(t=>t.cat===c.name);
     const spent=catTxs.reduce((s,t)=>s+t.amt,0);
     const pct=Math.min(100,Math.round(spent/c.budget*100));
@@ -288,7 +369,7 @@ function renderWeek(){
       </div>`).join("");
     return`<div class="cat-card">
       <div class="cat-hdr">
-        <span class="cat-name">${c.name}</span>
+        <span class="cat-name-lbl"><span class="color-dot" style="background:${c.color}"></span>${esc(c.name)}</span>
         <span class="cat-amt"><strong>${fmt(spent)}</strong> / ${fmt(c.budget)}</span>
       </div>
       <div class="prog"><div class="prog-fill" style="width:${pct}%;background:${over?"#E24B4A":c.color}"></div></div>
@@ -313,8 +394,97 @@ function addTx(){
 function delTx(k,id){
   if(!txData[k])return;
   txData[k]=txData[k].filter(t=>t.id!==id);
-  persist("bgt_tx",txData);
-  renderWeek();
+  persist("bgt_tx",txData);renderWeek();
+}
+
+// ── Categories ──
+function renderCats(){
+  document.getElementById("cats-total").textContent=fmt(weekBudget());
+  document.getElementById("cat-manage-list").innerHTML=cats.map(c=>{
+    if(editingCatId===c.id){
+      const colorBtns=CAT_COLORS.map(col=>`<button onclick="setCatColor('${c.id}','${col}')" style="width:22px;height:22px;border-radius:50%;background:${col};border:2px solid ${c.color===col?'var(--text)':'transparent'};cursor:pointer;padding:0"></button>`).join("");
+      return`<div class="edit-form" style="margin-bottom:8px">
+        <div class="grid-2">
+          <input type="text" id="ec-name" value="${esc(c.name)}" placeholder="Category name"/>
+          <input type="number" id="ec-budget" value="${c.budget}" placeholder="Weekly budget ($)" min="0"/>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${colorBtns}</div>
+        <div class="form-btns">
+          <button class="save-btn" onclick="saveCat('${c.id}')">Save</button>
+          <button class="cancel-btn" onclick="cancelCatEdit()">Cancel</button>
+          ${cats.length>1?`<button style="margin-left:auto;padding:7px 12px;font-size:13px;border:none;border-radius:var(--radius);background:var(--red-bg);color:var(--red);cursor:pointer;font-family:inherit" onclick="deleteCat('${c.id}')">Delete</button>`:""}
+        </div>
+      </div>`;
+    }
+    return`<div class="bill-row" data-rt="cat" data-rid="${c.id}">
+      <span class="drag-handle">⠿</span>
+      <div style="display:flex;align-items:center;gap:10px;flex:1">
+        <span class="color-dot" style="background:${c.color};width:12px;height:12px;border-radius:50%"></span>
+        <div>
+          <div class="bill-name">${esc(c.name)}</div>
+          <div class="bill-note">${fmt(c.budget)} / week</div>
+        </div>
+      </div>
+      <div class="bill-right">
+        <button class="edit-btn" onclick="startCatEdit('${c.id}')">Edit</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  const addArea=document.getElementById("add-cat-area");
+  if(addingCat){
+    const colorBtns=CAT_COLORS.map((col,i)=>`<button onclick="setNewCatColor('${col}',this)" style="width:22px;height:22px;border-radius:50%;background:${col};border:2px solid ${i===0?'var(--text)':'transparent'};cursor:pointer;padding:0"></button>`).join("");
+    addArea.innerHTML=`<div class="edit-form" style="margin-top:4px">
+      <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:2px">New category</div>
+      <div class="grid-2">
+        <input type="text" id="nc-name" placeholder="Category name"/>
+        <input type="number" id="nc-budget" placeholder="Weekly budget ($)" min="0"/>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="nc-colors">${colorBtns}</div>
+      <div class="form-btns">
+        <button class="save-btn" onclick="addCat()">Add category</button>
+        <button class="cancel-btn" onclick="cancelAddCat()">Cancel</button>
+      </div>
+    </div>`;
+    window._newCatColor=CAT_COLORS[0];
+  } else {
+    addArea.innerHTML=`<button class="add-dashed-btn" onclick="showAddCat()">+ Add a category</button>`;
+  }
+  wireReorder("cat");
+}
+
+function startCatEdit(id){editingCatId=id;addingCat=false;renderCats();}
+function cancelCatEdit(){editingCatId=null;renderCats();}
+function setCatColor(id,color){cats=cats.map(c=>c.id===id?{...c,color}:c);persist("bgt_cats",cats);renderCats();}
+function saveCat(id){
+  const old=cats.find(c=>c.id===id);
+  const name=document.getElementById("ec-name").value.trim()||old.name;
+  const budget=parseFloat(document.getElementById("ec-budget").value)||0;
+  if(name!==old.name){
+    Object.keys(txData).forEach(k=>{txData[k]=(txData[k]||[]).map(t=>t.cat===old.name?{...t,cat:name}:t);});
+    persist("bgt_tx",txData);
+  }
+  cats=cats.map(c=>c.id===id?{...c,name,budget}:c);
+  persist("bgt_cats",cats);editingCatId=null;renderCats();renderWeek();
+}
+function deleteCat(id){
+  if(cats.length<=1)return;
+  cats=cats.filter(c=>c.id!==id);
+  persist("bgt_cats",cats);editingCatId=null;renderCats();renderWeek();
+}
+function showAddCat(){addingCat=true;editingCatId=null;renderCats();}
+function cancelAddCat(){addingCat=false;renderCats();}
+function setNewCatColor(col,btn){
+  window._newCatColor=col;
+  document.querySelectorAll("#nc-colors button").forEach(b=>b.style.borderColor="transparent");
+  btn.style.borderColor="var(--text)";
+}
+function addCat(){
+  const name=document.getElementById("nc-name").value.trim();
+  const budget=parseFloat(document.getElementById("nc-budget").value)||0;
+  if(!name)return;
+  cats.push({id:"c"+Date.now(),name,budget,color:window._newCatColor||CAT_COLORS[0]});
+  persist("bgt_cats",cats);addingCat=false;renderCats();renderWeek();
 }
 
 // ── Bills ──
@@ -341,7 +511,8 @@ function renderBills(){
         </div>
       </div>`;
     }
-    return`<div class="bill-row">
+    return`<div class="bill-row" data-rt="bill" data-rid="${b.id}">
+      <span class="drag-handle">⠿</span>
       <div style="flex:1">
         <div class="bill-name">${esc(b.name)}</div>
         <div class="bill-note">${esc(b.note)}</div>
@@ -383,10 +554,10 @@ function renderBills(){
       </div>
     </div>`;
   } else {
-    addArea.innerHTML=`<button class="add-bill-btn" onclick="showAddBill()">+ Add a bill</button>`;
+    addArea.innerHTML=`<button class="add-dashed-btn" onclick="showAddBill()">+ Add a bill</button>`;
   }
-
   document.getElementById("bills-total").textContent=fmt(fixedTotal);
+  wireReorder("bill");
 }
 
 function startEdit(id){editingBillId=id;addingBill=false;renderBills();}
@@ -423,18 +594,19 @@ function renderMonth(){
   while(sun.getMonth()===month){weeks.push(new Date(sun));sun=new Date(sun.getTime()+7*86400000);}
 
   let totalTracked=0;
-  const catTotals={};CATS.forEach(c=>catTotals[c.name]=0);
+  const catTotals={};cats.forEach(c=>catTotals[c.name]=0);
   weeks.forEach(ws=>{(txData[wKey(ws)]||[]).forEach(t=>{totalTracked+=t.amt;catTotals[t.cat]=(catTotals[t.cat]||0)+t.amt;});});
 
   const travelTrips=tripData.filter(t=>{if(!t.start)return false;const d=new Date(t.start+"T12:00:00");return d.getFullYear()===year&&d.getMonth()===month;});
   const travelSpend=travelTrips.reduce((s,t)=>s+(t.cost||0),0);
   const fixedTotal=bills.reduce((s,b)=>s+b.amount,0)+HAIRCUT_AMT;
-  const weekBudgetTotal=weeks.length*WEEK_BUDGET;
+  const wb=weekBudget();
+  const weekBudgetTotal=weeks.length*wb;
 
   const weekRows=weeks.map(ws=>{
     const we=new Date(ws);we.setDate(we.getDate()+6);
     const spent=(txData[wKey(ws)]||[]).reduce((s,t)=>s+t.amt,0);
-    const left=WEEK_BUDGET-spent;
+    const left=wb-spent;
     const isNow=wKey(ws)===wKey(weekStart(today));
     const lc=left>=0?"var(--green)":left>=-50?"var(--amber)":"var(--red)";
     return`<div class="month-row">
@@ -443,9 +615,9 @@ function renderMonth(){
     </div>`;
   }).join("");
 
-  const catRows=CATS.map(c=>`
+  const catRows=cats.map(c=>`
     <div class="month-row">
-      <span style="color:var(--text2)">${c.name}</span>
+      <span style="color:var(--text2)"><span class="color-dot" style="background:${c.color};margin-right:6px"></span>${esc(c.name)}</span>
       <span><strong>${fmt(catTotals[c.name]||0)}</strong> <span style="color:var(--text3)">/ ${fmt(c.budget*weeks.length)} (${weeks.length}wk)</span></span>
     </div>`).join("");
 
@@ -511,7 +683,6 @@ function renderTravel(){
   }).join("");
 }
 
-// init
 renderWeek();
 </script>
 
