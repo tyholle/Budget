@@ -1,1 +1,519 @@
+<!DOCTYPE html>
 
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Budget Tracker</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f5f4f0;--bg3:#eeede8;
+  --text:#1a1a18;--text2:#6b6b67;--text3:#9b9b96;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+  --radius:10px;--radius-lg:14px;
+  --green:#0F6E56;--green-bg:#E1F5EE;
+  --amber:#854F0B;--amber-bg:#FAEEDA;
+  --red:#A32D2D;--red-bg:#FCEBEB;
+  --blue:#185FA5;--blue-bg:#E6F1FB;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+    --text:#f0efea;--text2:#9b9b96;--text3:#6b6b67;
+    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+    --green:#5DCAA5;--green-bg:#0a2e23;
+    --amber:#EF9F27;--amber-bg:#2a1e08;
+    --red:#F09595;--red-bg:#2e1111;
+    --blue:#85B7EB;--blue-bg:#071e35;
+  }
+}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:1.5rem 1rem 5rem}
+h1{font-size:22px;font-weight:600;margin-bottom:4px}
+.sub{font-size:13px;color:var(--text2);margin-bottom:1.25rem}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.25rem;overflow-x:auto}
+.tab{padding:9px 14px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;white-space:nowrap}
+.tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+.section{display:none}.section.active{display:block}
+.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem}
+.metric{background:var(--bg2);border-radius:var(--radius);padding:.875rem 1rem}
+.metric-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.metric-val{font-size:22px;font-weight:600}
+.week-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;gap:8px;flex-wrap:wrap}
+.week-title{font-size:15px;font-weight:500}
+.week-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.nav-btns{display:flex;gap:6px}
+.nav-btn{background:none;border:1px solid var(--border2);border-radius:var(--radius);padding:6px 12px;cursor:pointer;font-size:13px;color:var(--text);font-family:inherit}
+.add-form{display:grid;grid-template-columns:1fr 80px 1fr auto;gap:8px;margin-bottom:1.25rem;align-items:end}
+input,select,textarea{padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
+.add-btn{padding:9px 16px;font-size:14px;font-weight:500;border:none;border-radius:var(--radius);background:var(--text);color:var(--bg);cursor:pointer;font-family:inherit;white-space:nowrap}
+.cat-cards{display:flex;flex-direction:column;gap:8px}
+.cat-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem}
+.cat-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.cat-name{font-size:14px;font-weight:500}
+.cat-amt{font-size:13px;color:var(--text2)}
+.cat-amt strong{color:var(--text)}
+.prog{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .4s}
+.tx-rows{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.tx-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text2)}
+.tx-right{display:flex;align-items:center;gap:6px}
+.del-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0;line-height:1}
+.del-btn:hover{color:var(--red)}
+.sec-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin:1.25rem 0 .75rem}
+.bill-list{display:flex;flex-direction:column;gap:8px}
+.bill-row{display:flex;justify-content:space-between;align-items:center;padding:.875rem 1.25rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius)}
+.bill-name{font-size:14px;font-weight:500}
+.bill-note{font-size:12px;color:var(--text2);margin-top:2px}
+.bill-right{display:flex;align-items:center;gap:10px}
+.bill-amt{font-size:14px;font-weight:500}
+.badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500}
+.badge-due{background:var(--red-bg);color:var(--red)}
+.badge-soon{background:var(--amber-bg);color:var(--amber)}
+.badge-ok{background:var(--green-bg);color:var(--green)}
+.edit-btn{background:none;border:none;color:var(--text2);cursor:pointer;font-size:13px;font-family:inherit;padding:2px 6px}
+.remove-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:17px;padding:0;line-height:1}
+.edit-form{display:flex;flex-direction:column;gap:8px;padding:.875rem 1.25rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid-day{display:grid;grid-template-columns:80px 1fr;gap:8px}
+.form-btns{display:flex;gap:8px}
+.save-btn{padding:7px 16px;font-size:13px;font-weight:500;border:none;border-radius:var(--radius);background:var(--text);color:var(--bg);cursor:pointer;font-family:inherit}
+.cancel-btn{padding:7px 16px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);background:none;color:var(--text);cursor:pointer;font-family:inherit}
+.add-bill-btn{width:100%;margin-top:4px;padding:10px;font-size:13px;border:1px dashed var(--border2);border-radius:var(--radius);background:none;color:var(--text2);cursor:pointer;font-family:inherit}
+.total-row{margin-top:1rem;padding:.875rem 1.25rem;background:var(--bg2);border-radius:var(--radius);display:flex;justify-content:space-between;align-items:center}
+.total-label{font-size:13px;color:var(--text2)}
+.total-val{font-size:16px;font-weight:600}
+.month-stat{display:flex;justify-content:space-between;align-items:center;padding:.875rem 1.25rem;background:var(--bg2);border-radius:var(--radius);margin-bottom:8px}
+.month-stat-label{font-size:13px;color:var(--text2)}
+.month-stat-val{font-size:15px;font-weight:500}
+.month-row{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--border)}
+.now-badge{font-size:11px;background:var(--blue-bg);color:var(--blue);padding:1px 6px;border-radius:8px;margin-left:6px}
+.trip-form-wrap{background:var(--bg2);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1.25rem}
+.trip-form-title{font-size:14px;font-weight:500;margin-bottom:12px}
+textarea{resize:vertical;min-height:70px}
+.trip-submit{width:100%;padding:10px;font-size:14px;font-weight:500;border:none;border-radius:var(--radius);background:var(--text);color:var(--bg);cursor:pointer;font-family:inherit}
+.trip-cards{display:flex;flex-direction:column;gap:12px}
+.trip-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.trip-card-hdr{padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:flex-start}
+.trip-dest{font-size:16px;font-weight:600}
+.trip-dates{font-size:12px;color:var(--text2);margin-top:3px}
+.trip-cost-badge{background:var(--blue-bg);color:var(--blue);font-size:13px;font-weight:500;padding:4px 12px;border-radius:20px}
+.trip-body{padding:.875rem 1.25rem 1rem;border-top:1px solid var(--border)}
+.trip-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--text2);margin-bottom:8px}
+.trip-meta strong{display:block;font-size:13px;font-weight:500;color:var(--text);margin-bottom:1px}
+.trip-notes{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:8px}
+.remove-trip-btn{background:none;border:1px solid var(--border);border-radius:var(--radius);padding:5px 12px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit}
+.empty{text-align:center;padding:2.5rem;color:var(--text2);font-size:14px}
+.trip-summary{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Budget Tracker</h1>
+  <p class="sub" id="today-lbl"></p>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('week')">This week</button>
+    <button class="tab" onclick="switchTab('bills')">Monthly bills</button>
+    <button class="tab" onclick="switchTab('month')">Month view</button>
+    <button class="tab" onclick="switchTab('travel')">Travel log</button>
+  </div>
+
+  <!-- WEEK -->
+
+  <div id="tab-week" class="section active">
+    <div class="week-hdr">
+      <div><div class="week-title" id="wk-title"></div><div class="week-sub" id="wk-sub"></div></div>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="changeWeek(-1)">← Prev</button>
+        <button class="nav-btn" onclick="goToday()">Today</button>
+        <button class="nav-btn" onclick="changeWeek(1)">Next →</button>
+      </div>
+    </div>
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Spent</div><div class="metric-val" id="m-spent" style="color:var(--red)">$0.00</div></div>
+      <div class="metric"><div class="metric-label">Budget</div><div class="metric-val">$420.00</div></div>
+      <div class="metric"><div class="metric-label">Left</div><div class="metric-val" id="m-left" style="color:var(--green)">$420.00</div></div>
+    </div>
+    <div class="add-form">
+      <input type="text" id="tx-desc" placeholder="Description"/>
+      <input type="number" id="tx-amt" placeholder="$0" min="0" step="0.01"/>
+      <select id="tx-cat">
+        <option>Groceries</option><option>Going Out</option><option>Uber/Travel</option>
+        <option>Miscellaneous</option><option>Entertainment</option>
+      </select>
+      <button class="add-btn" onclick="addTx()">+ Add</button>
+    </div>
+    <div class="cat-cards" id="cat-cards"></div>
+  </div>
+
+  <!-- BILLS -->
+
+  <div id="tab-bills" class="section">
+    <div class="sec-title">Recurring bills</div>
+    <div class="bill-list" id="bill-list"></div>
+    <div id="add-bill-area"></div>
+    <div class="total-row"><span class="total-label">Fixed monthly total</span><span class="total-val" id="bills-total"></span></div>
+  </div>
+
+  <!-- MONTH -->
+
+  <div id="tab-month" class="section" id="month-container">
+    <div id="month-inner"></div>
+  </div>
+
+  <!-- TRAVEL -->
+
+  <div id="tab-travel" class="section">
+    <div class="trip-form-wrap">
+      <div class="trip-form-title">Log a trip</div>
+      <div class="grid-2" style="margin-bottom:8px">
+        <input type="text" id="tr-dest" placeholder="Destination"/>
+        <input type="number" id="tr-cost" placeholder="Total cost ($)"/>
+      </div>
+      <div class="grid-2" style="margin-bottom:8px">
+        <input type="date" id="tr-start"/>
+        <input type="date" id="tr-end"/>
+      </div>
+      <div class="grid-2" style="margin-bottom:8px">
+        <input type="text" id="tr-flight" placeholder="Flight cost ($)"/>
+        <input type="text" id="tr-hotel" placeholder="Hotel cost ($)"/>
+      </div>
+      <textarea id="tr-notes" placeholder="Notes, highlights, memories..." style="margin-bottom:8px;width:100%"></textarea>
+      <button class="trip-submit" onclick="addTrip()">Log trip</button>
+    </div>
+    <div id="trip-list"></div>
+  </div>
+</div>
+
+<script>
+const CATS=[
+  {name:"Groceries",budget:100,color:"#1D9E75"},
+  {name:"Going Out",budget:150,color:"#378ADD"},
+  {name:"Uber/Travel",budget:40,color:"#7F77DD"},
+  {name:"Miscellaneous",budget:30,color:"#D4537E"},
+  {name:"Entertainment",budget:100,color:"#BA7517"},
+];
+const WEEK_BUDGET=420;
+const HAIRCUT_BASE=new Date(2026,2,20);
+const HAIRCUT_AMT=54.35;
+const DEFAULT_BILLS=[
+  {id:"b1",name:"Rent",amount:2500,day:31,note:"Last day of month"},
+  {id:"b2",name:"Gym",amount:224.15,day:1,note:"1st of month"},
+  {id:"b3",name:"Electric",amount:175,day:19,note:"19th of month"},
+  {id:"b4",name:"Wifi",amount:22.50,day:5,note:"5th of month"},
+  {id:"b5",name:"Amazon",amount:17.00,day:23,note:"Around 23rd"},
+  {id:"b6",name:"Claude Sub",amount:21.78,day:27,note:"27th of month"},
+];
+
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
+function persist(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+
+let txData=load("bgt_tx",{});
+let tripData=load("bgt_trips",[]);
+let bills=load("bgt_bills",DEFAULT_BILLS);
+
+const today=new Date();today.setHours(0,0,0,0);
+let currentWS=weekStart(today);
+let editingBillId=null;
+let addingBill=false;
+
+function weekStart(d){const dt=new Date(d);dt.setHours(0,0,0,0);dt.setDate(dt.getDate()-dt.getDay());return dt;}
+function wKey(d){return d.toISOString().slice(0,10);}
+function fmt(n){return"$"+(Math.round(n*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtDate(d){return d.toLocaleDateString("en-US",{month:"short",day:"numeric"});}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+function daysUntilDom(day){
+  const t=new Date(today.getFullYear(),today.getMonth(),day);
+  if(t<today)t.setMonth(t.getMonth()+1);
+  return Math.round((t-today)/86400000);
+}
+function badgeHtml(days){
+  if(days<=2)return`<span class="badge badge-due">${days}d</span>`;
+  if(days<=7)return`<span class="badge badge-soon">${days}d</span>`;
+  return`<span class="badge badge-ok">${days}d</span>`;
+}
+function getHaircutDates(){
+  let d=new Date(HAIRCUT_BASE);
+  while(d<=today)d=new Date(d.getTime()+21*86400000);
+  const dates=[];
+  for(let i=0;i<6;i++){dates.push(new Date(d));d=new Date(d.getTime()+21*86400000);}
+  return dates;
+}
+
+document.getElementById("today-lbl").textContent=today.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+
+// ── Tab switching ──
+function switchTab(t){
+  document.querySelectorAll(".tab").forEach((el,i)=>el.classList.toggle("active",["week","bills","month","travel"][i]===t));
+  document.querySelectorAll(".section").forEach(el=>el.classList.remove("active"));
+  document.getElementById("tab-"+t).classList.add("active");
+  if(t==="week")renderWeek();
+  if(t==="bills")renderBills();
+  if(t==="month")renderMonth();
+  if(t==="travel")renderTravel();
+}
+
+// ── Week ──
+function changeWeek(dir){currentWS=new Date(currentWS);currentWS.setDate(currentWS.getDate()+dir*7);renderWeek();}
+function goToday(){currentWS=weekStart(today);renderWeek();}
+
+function renderWeek(){
+  const ws=currentWS;
+  const we=new Date(ws);we.setDate(we.getDate()+6);
+  const isNow=wKey(ws)===wKey(weekStart(today));
+  document.getElementById("wk-title").textContent=fmtDate(ws)+" – "+fmtDate(we);
+  document.getElementById("wk-sub").textContent=isNow?"Current week":"";
+  const txs=txData[wKey(ws)]||[];
+  const totalSpent=txs.reduce((s,t)=>s+t.amt,0);
+  const left=WEEK_BUDGET-totalSpent;
+  document.getElementById("m-spent").textContent=fmt(totalSpent);
+  const leftEl=document.getElementById("m-left");
+  leftEl.textContent=fmt(Math.abs(left));
+  leftEl.style.color=left>=0?"var(--green)":left>=-50?"var(--amber)":"var(--red)";
+
+  document.getElementById("cat-cards").innerHTML=CATS.map(c=>{
+    const catTxs=txs.filter(t=>t.cat===c.name);
+    const spent=catTxs.reduce((s,t)=>s+t.amt,0);
+    const pct=Math.min(100,Math.round(spent/c.budget*100));
+    const over=spent>c.budget;
+    const txRows=catTxs.map(t=>`
+      <div class="tx-row">
+        <span>${esc(t.desc)}</span>
+        <div class="tx-right"><span>${fmt(t.amt)}</span>
+          <button class="del-btn" onclick="delTx('${wKey(ws)}','${t.id}')">×</button>
+        </div>
+      </div>`).join("");
+    return`<div class="cat-card">
+      <div class="cat-hdr">
+        <span class="cat-name">${c.name}</span>
+        <span class="cat-amt"><strong>${fmt(spent)}</strong> / ${fmt(c.budget)}</span>
+      </div>
+      <div class="prog"><div class="prog-fill" style="width:${pct}%;background:${over?"#E24B4A":c.color}"></div></div>
+      ${catTxs.length?`<div class="tx-rows">${txRows}</div>`:""}
+    </div>`;
+  }).join("");
+}
+
+function addTx(){
+  const desc=document.getElementById("tx-desc").value.trim();
+  const amt=parseFloat(document.getElementById("tx-amt").value);
+  const cat=document.getElementById("tx-cat").value;
+  if(!desc||!amt||amt<=0)return;
+  const k=wKey(currentWS);
+  if(!txData[k])txData[k]=[];
+  txData[k].push({id:Date.now().toString(),desc,amt,cat});
+  persist("bgt_tx",txData);
+  document.getElementById("tx-desc").value="";
+  document.getElementById("tx-amt").value="";
+  renderWeek();
+}
+function delTx(k,id){
+  if(!txData[k])return;
+  txData[k]=txData[k].filter(t=>t.id!==id);
+  persist("bgt_tx",txData);
+  renderWeek();
+}
+
+// ── Bills ──
+function renderBills(){
+  const hDates=getHaircutDates();
+  const hNext=hDates[0];
+  const hDays=Math.round((hNext-today)/86400000);
+  const fixedTotal=bills.reduce((s,b)=>s+b.amount,0)+HAIRCUT_AMT;
+
+  document.getElementById("bill-list").innerHTML=bills.map(b=>{
+    if(editingBillId===b.id){
+      return`<div class="edit-form">
+        <div class="grid-2">
+          <input type="text" value="${esc(b.name)}" id="ef-name" placeholder="Name"/>
+          <input type="number" value="${b.amount}" id="ef-amt" placeholder="Amount ($)"/>
+        </div>
+        <div class="grid-day">
+          <input type="number" value="${b.day}" id="ef-day" placeholder="Day" min="1" max="31"/>
+          <input type="text" value="${esc(b.note)}" id="ef-note" placeholder="Note"/>
+        </div>
+        <div class="form-btns">
+          <button class="save-btn" onclick="saveEdit('${b.id}')">Save</button>
+          <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+        </div>
+      </div>`;
+    }
+    return`<div class="bill-row">
+      <div style="flex:1">
+        <div class="bill-name">${esc(b.name)}</div>
+        <div class="bill-note">${esc(b.note)}</div>
+      </div>
+      <div class="bill-right">
+        ${badgeHtml(daysUntilDom(b.day))}
+        <span class="bill-amt">${fmt(b.amount)}</span>
+        <button class="edit-btn" onclick="startEdit('${b.id}')">Edit</button>
+        <button class="remove-btn" onclick="deleteBill('${b.id}')">×</button>
+      </div>
+    </div>`;
+  }).join("")+`
+    <div class="bill-row">
+      <div style="flex:1">
+        <div class="bill-name">Haircut</div>
+        <div class="bill-note">Every 3 weeks · Next: ${fmtDate(hNext)} · Then: ${hDates.slice(1,4).map(d=>fmtDate(d)).join(" · ")}</div>
+      </div>
+      <div class="bill-right">
+        ${badgeHtml(hDays)}
+        <span class="bill-amt">${fmt(HAIRCUT_AMT)}</span>
+      </div>
+    </div>`;
+
+  const addArea=document.getElementById("add-bill-area");
+  if(addingBill){
+    addArea.innerHTML=`<div class="edit-form" style="margin-top:4px">
+      <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:2px">New bill</div>
+      <div class="grid-2">
+        <input type="text" id="nb-name" placeholder="Name"/>
+        <input type="number" id="nb-amt" placeholder="Amount ($)"/>
+      </div>
+      <div class="grid-day">
+        <input type="number" id="nb-day" placeholder="Day" min="1" max="31"/>
+        <input type="text" id="nb-note" placeholder="Note"/>
+      </div>
+      <div class="form-btns">
+        <button class="save-btn" onclick="addBill()">Add bill</button>
+        <button class="cancel-btn" onclick="cancelAddBill()">Cancel</button>
+      </div>
+    </div>`;
+  } else {
+    addArea.innerHTML=`<button class="add-bill-btn" onclick="showAddBill()">+ Add a bill</button>`;
+  }
+
+  document.getElementById("bills-total").textContent=fmt(fixedTotal);
+}
+
+function startEdit(id){editingBillId=id;addingBill=false;renderBills();}
+function cancelEdit(){editingBillId=null;renderBills();}
+function saveEdit(id){
+  const name=document.getElementById("ef-name").value.trim();
+  const amount=parseFloat(document.getElementById("ef-amt").value)||0;
+  const day=parseInt(document.getElementById("ef-day").value)||1;
+  const note=document.getElementById("ef-note").value.trim();
+  bills=bills.map(b=>b.id===id?{...b,name,amount,day,note}:b);
+  persist("bgt_bills",bills);editingBillId=null;renderBills();
+}
+function deleteBill(id){bills=bills.filter(b=>b.id!==id);persist("bgt_bills",bills);renderBills();}
+function showAddBill(){addingBill=true;editingBillId=null;renderBills();}
+function cancelAddBill(){addingBill=false;renderBills();}
+function addBill(){
+  const name=document.getElementById("nb-name").value.trim();
+  const amount=parseFloat(document.getElementById("nb-amt").value)||0;
+  const day=parseInt(document.getElementById("nb-day").value)||1;
+  const note=document.getElementById("nb-note").value.trim();
+  if(!name)return;
+  bills.push({id:"b"+Date.now(),name,amount,day,note});
+  persist("bgt_bills",bills);addingBill=false;renderBills();
+}
+
+// ── Month ──
+function renderMonth(){
+  const year=today.getFullYear(),month=today.getMonth();
+  const monthName=today.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+  const weeks=[];
+  let sun=new Date(year,month,1);
+  sun.setDate(sun.getDate()-sun.getDay());
+  if(sun.getMonth()<month)sun.setDate(sun.getDate()+7);
+  while(sun.getMonth()===month){weeks.push(new Date(sun));sun=new Date(sun.getTime()+7*86400000);}
+
+  let totalTracked=0;
+  const catTotals={};CATS.forEach(c=>catTotals[c.name]=0);
+  weeks.forEach(ws=>{(txData[wKey(ws)]||[]).forEach(t=>{totalTracked+=t.amt;catTotals[t.cat]=(catTotals[t.cat]||0)+t.amt;});});
+
+  const travelTrips=tripData.filter(t=>{if(!t.start)return false;const d=new Date(t.start+"T12:00:00");return d.getFullYear()===year&&d.getMonth()===month;});
+  const travelSpend=travelTrips.reduce((s,t)=>s+(t.cost||0),0);
+  const fixedTotal=bills.reduce((s,b)=>s+b.amount,0)+HAIRCUT_AMT;
+  const weekBudgetTotal=weeks.length*WEEK_BUDGET;
+
+  const weekRows=weeks.map(ws=>{
+    const we=new Date(ws);we.setDate(we.getDate()+6);
+    const spent=(txData[wKey(ws)]||[]).reduce((s,t)=>s+t.amt,0);
+    const left=WEEK_BUDGET-spent;
+    const isNow=wKey(ws)===wKey(weekStart(today));
+    const lc=left>=0?"var(--green)":left>=-50?"var(--amber)":"var(--red)";
+    return`<div class="month-row">
+      <span style="color:var(--text2)">${fmtDate(ws)}–${fmtDate(we)}${isNow?'<span class="now-badge">now</span>':""}</span>
+      <span><strong>${fmt(spent)}</strong> <span style="font-size:12px;color:${lc}">${left>=0?"("+fmt(left)+" left)":"("+fmt(Math.abs(left))+" over)"}</span></span>
+    </div>`;
+  }).join("");
+
+  const catRows=CATS.map(c=>`
+    <div class="month-row">
+      <span style="color:var(--text2)">${c.name}</span>
+      <span><strong>${fmt(catTotals[c.name]||0)}</strong> <span style="color:var(--text3)">/ ${fmt(c.budget*weeks.length)} (${weeks.length}wk)</span></span>
+    </div>`).join("");
+
+  const travelSubRows=travelTrips.map(t=>`
+    <div class="month-row">
+      <span style="color:var(--text3);padding-left:12px">↳ ${esc(t.dest)}</span>
+      <strong>${fmt(t.cost||0)}</strong>
+    </div>`).join("");
+
+  document.getElementById("month-inner").innerHTML=`
+    <div style="font-size:16px;font-weight:600;margin-bottom:1rem">${monthName}</div>
+    <div class="month-stat"><span class="month-stat-label">Fixed bills (est.)</span><span class="month-stat-val">${fmt(fixedTotal)}</span></div>
+    <div class="month-stat"><span class="month-stat-label">Weekly budget (${weeks.length} weeks)</span><span class="month-stat-val">${fmt(weekBudgetTotal)}</span></div>
+    <div class="month-stat" style="margin-bottom:1.5rem"><span class="month-stat-label" style="font-weight:500">Total estimate</span><span class="month-stat-val" style="font-size:18px">${fmt(fixedTotal+weekBudgetTotal)}</span></div>
+    <div class="sec-title">Weeks in ${monthName.split(" ")[0]}</div>
+    ${weekRows}
+    <div class="sec-title" style="margin-top:1.25rem">Tracked by category</div>
+    ${catRows}
+    <div class="month-row"><span style="color:var(--blue)">Travel (no budget)</span><span><strong style="color:var(--blue)">${fmt(travelSpend)}</strong> <span style="color:var(--text3)">${travelTrips.length} trip${travelTrips.length!==1?"s":""}</span></span></div>
+    ${travelSubRows}
+    <div class="month-row" style="border-bottom:none;margin-top:2px"><span style="font-weight:500">Total tracked (excl. travel)</span><strong>${fmt(totalTracked)}</strong></div>
+    <div class="month-row" style="border-bottom:none"><span style="color:var(--text2)">Total incl. travel</span><span style="font-weight:500;color:var(--text2)">${fmt(totalTracked+travelSpend)}</span></div>`;
+}
+
+// ── Travel ──
+function addTrip(){
+  const dest=document.getElementById("tr-dest").value.trim();
+  const cost=parseFloat(document.getElementById("tr-cost").value)||0;
+  const start=document.getElementById("tr-start").value;
+  const end=document.getElementById("tr-end").value;
+  const flight=document.getElementById("tr-flight").value.trim();
+  const hotel=document.getElementById("tr-hotel").value.trim();
+  const notes=document.getElementById("tr-notes").value.trim();
+  if(!dest)return;
+  tripData.unshift({id:Date.now().toString(),dest,cost,start,end,flight,hotel,notes});
+  persist("bgt_trips",tripData);
+  ["tr-dest","tr-cost","tr-start","tr-end","tr-flight","tr-hotel","tr-notes"].forEach(id=>document.getElementById(id).value="");
+  renderTravel();
+}
+function delTrip(id){
+  if(!confirm("Remove this trip?"))return;
+  tripData=tripData.filter(t=>t.id!==id);
+  persist("bgt_trips",tripData);renderTravel();
+}
+function renderTravel(){
+  const total=tripData.reduce((s,t)=>s+(t.cost||0),0);
+  const el=document.getElementById("trip-list");
+  if(!tripData.length){el.innerHTML='<div class="empty">No trips logged yet — add your first one above.</div>';return;}
+  el.innerHTML=`<div class="trip-summary"><span style="color:var(--text2)">${tripData.length} trip${tripData.length!==1?"s":""}</span><span style="font-weight:500">Total: ${fmt(total)}</span></div>`+
+  tripData.map(t=>{
+    const dr=t.start&&t.end?fmtDate(new Date(t.start+"T12:00:00"))+" – "+fmtDate(new Date(t.end+"T12:00:00")):t.start?fmtDate(new Date(t.start+"T12:00:00")):"";
+    return`<div class="trip-card">
+      <div class="trip-card-hdr">
+        <div><div class="trip-dest">${esc(t.dest)}</div>${dr?`<div class="trip-dates">${dr}</div>`:""}</div>
+        ${t.cost>0?`<span class="trip-cost-badge">${fmt(t.cost)}</span>`:""}
+      </div>
+      <div class="trip-body">
+        ${(t.flight||t.hotel)?`<div class="trip-meta">${t.flight?`<div><strong>Flight</strong>$${esc(t.flight)}</div>`:""} ${t.hotel?`<div><strong>Hotel/Stay</strong>$${esc(t.hotel)}</div>`:""}</div>`:""}
+        ${t.notes?`<div class="trip-notes">${esc(t.notes)}</div>`:""}
+        <button class="remove-trip-btn" onclick="delTrip('${t.id}')">Remove trip</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// init
+renderWeek();
+</script>
+
+</body>
+</html>
